@@ -4,6 +4,7 @@
   const SEGMENT_DRAW_DURATION = DURATION / GENERATIONS;
   const MAX_ACTIVE = 100;
   const BRANCH_WIDTH = 0.6;
+  const TIP_RADIUS = 1;
   const LANE_GAP = 4;
 
   const rand = (min, max) => min + Math.random() * (max - min);
@@ -27,7 +28,11 @@
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
   }
 
-  function descendants(activeCount) {
+  function maxLaneCount(top, bottom) {
+    return Math.floor((bottom - top) / LANE_GAP) + 1;
+  }
+
+  function descendants(activeCount, cap) {
     const roll = Math.random();
 
     if (activeCount <= 2) {
@@ -35,14 +40,14 @@
       return 2;
     }
 
-    if (activeCount >= MAX_ACTIVE * 0.8) {
-      if (roll < 0.42) return 0;
-      if (roll < 0.88) return 1;
+    if (activeCount >= cap * 0.8) {
+      if (roll < 0.25) return 0;
+      if (roll < 0.75) return 1;
       return 2;
     }
 
-    if (roll < 0.3) return 0;
-    if (roll < 0.6) return 1;
+    if (roll < 0.25) return 0;
+    if (roll < 0.7) return 1;
     return 2;
   }
 
@@ -50,8 +55,8 @@
     return (hue + rand(-18, 18) + 360) % 360;
   }
 
-  function fitCountsToCap(counts) {
-    while (counts.reduce((sum, count) => sum + count, 0) > MAX_ACTIVE) {
+  function fitCountsToCap(counts, cap) {
+    while (counts.reduce((sum, count) => sum + count, 0) > cap) {
       const candidates = counts
         .map((count, index) => ({ count, index }))
         .filter((item) => item.count > 0);
@@ -79,6 +84,7 @@
     headingRange.detach();
     const top = 6;
     const bottom = Math.max(top + 64, brandBox.height - 6);
+    const activeCap = Math.min(MAX_ACTIVE, maxLaneCount(top, bottom));
     const startX = clamp(headingBox.right - headerBox.left + 22, 24, headerBox.width - 90);
     const startY = bottom;
     const available = Math.max(180, headerBox.width - startX);
@@ -86,16 +92,17 @@
     const baseHue = rand(185, 315);
     let active = [{ x: startX, y: startY, hue: baseHue }];
     const segments = [];
+    const tips = [];
 
     for (let generation = 0; generation < GENERATIONS; generation += 1) {
       active.sort((a, b) => b.y - a.y);
-      let counts = active.map(() => descendants(active.length));
+      let counts = active.map(() => descendants(active.length, activeCap));
 
       if (!counts.some(Boolean)) {
         counts[Math.floor(Math.random() * counts.length)] = 1;
       }
 
-      counts = fitCountsToCap(counts);
+      counts = fitCountsToCap(counts, activeCap);
 
       const nextCount = counts.reduce((sum, count) => sum + count, 0);
       const nextYs = laneYs(nextCount, top, bottom);
@@ -103,6 +110,16 @@
       let childIndex = 0;
 
       active.forEach((node, parentIndex) => {
+        if (counts[parentIndex] === 0) {
+          tips.push({
+            generation,
+            x: node.x,
+            y: node.y,
+            hue: node.hue,
+          });
+          return;
+        }
+
         for (let i = 0; i < counts[parentIndex]; i += 1) {
           const childY = nextYs[childIndex];
           const child = {
@@ -129,9 +146,11 @@
 
     return {
       segments,
+      tips,
+      tipKeys: new Set(tips.map((tip) => `${tip.x},${tip.y}`)),
       startX,
       startY,
-      maxActive: MAX_ACTIVE,
+      maxActive: activeCap,
       maxX: Math.max(...segments.map((segment) => segment.toX)),
       minY: Math.min(...segments.map((segment) => Math.min(segment.fromY, segment.toY))),
       maxY: Math.max(...segments.map((segment) => Math.max(segment.fromY, segment.toY))),
@@ -156,13 +175,24 @@
     let restartCount = 0;
     let generationTimers = [];
 
-    function branchPath(fromX, fromY, toX, toY) {
+    function branchPath(fromX, fromY, toX, toY, trimEnd = 0) {
       const bend = (toX - fromX) * 0.5;
       const cp1x = fromX + bend;
       const cp1y = fromY;
       const cp2x = toX - bend;
       const cp2y = toY;
-      return `M ${fromX} ${fromY} C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${toX} ${toY}`;
+      let endX = toX;
+      let endY = toY;
+
+      if (trimEnd > 0) {
+        const dx = endX - cp2x;
+        const dy = endY - cp2y;
+        const len = Math.hypot(dx, dy) || 1;
+        endX -= (dx / len) * trimEnd;
+        endY -= (dy / len) * trimEnd;
+      }
+
+      return `M ${fromX} ${fromY} C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${endX} ${endY}`;
     }
 
     function animateBranchDraw(path) {
@@ -177,17 +207,37 @@
     }
 
     function addSvgBranch(segment, animate) {
+      const endsAtTip = lineage.tipKeys.has(`${segment.toX},${segment.toY}`);
+      const trimEnd = endsAtTip ? TIP_RADIUS - BRANCH_WIDTH / 2 : 0;
       const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-      path.setAttribute("d", branchPath(segment.fromX, segment.fromY, segment.toX, segment.toY));
+      path.setAttribute("d", branchPath(segment.fromX, segment.fromY, segment.toX, segment.toY, trimEnd));
       path.setAttribute("fill", "none");
       path.setAttribute("stroke", hsla(segment.hue, 0.52, 0.54, 1));
       path.setAttribute("stroke-width", String(BRANCH_WIDTH));
-      path.setAttribute("stroke-linecap", "round");
+      path.setAttribute("stroke-linecap", endsAtTip ? "butt" : "round");
       path.setAttribute("stroke-linejoin", "round");
       svg.appendChild(path);
 
       if (animate) {
         animateBranchDraw(path);
+      }
+    }
+
+    function addSvgTip(tip, animate) {
+      const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+      circle.setAttribute("cx", String(tip.x));
+      circle.setAttribute("cy", String(tip.y));
+      circle.setAttribute("r", String(TIP_RADIUS));
+      circle.setAttribute("fill", "none");
+      circle.setAttribute("stroke", hsla(tip.hue, 0.52, 0.54, 1));
+      circle.setAttribute("stroke-width", String(BRANCH_WIDTH));
+      svg.appendChild(circle);
+
+      if (animate) {
+        circle.style.opacity = "0";
+        circle.getBoundingClientRect();
+        circle.style.transition = `opacity ${SEGMENT_DRAW_DURATION}ms ease-out`;
+        circle.style.opacity = "1";
       }
     }
 
@@ -205,6 +255,16 @@
         }
 
         const timer = setTimeout(() => drawSegment(segment), (segment.generation / GENERATIONS) * DURATION);
+        generationTimers.push(timer);
+      });
+
+      lineage.tips.forEach((tip) => {
+        if (reduceMotion) {
+          addSvgTip(tip, false);
+          return;
+        }
+
+        const timer = setTimeout(() => addSvgTip(tip, true), (tip.generation / GENERATIONS) * DURATION);
         generationTimers.push(timer);
       });
     }
@@ -231,6 +291,7 @@
       lineage = makeLineage(svg, header, brand, heading);
       svg.dataset.generations = String(GENERATIONS);
       svg.dataset.segments = String(lineage.segments.length);
+      svg.dataset.tips = String(lineage.tips.length);
       svg.dataset.maxActive = String(lineage.maxActive);
       svg.dataset.branchWidth = String(BRANCH_WIDTH);
       svg.dataset.startX = String(Math.round(lineage.startX));
