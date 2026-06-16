@@ -360,5 +360,13 @@
     );
   }
 
-  document.querySelectorAll(".site-header").forEach(initHeader);
+  function initHeaders() {
+    document.querySelectorAll(".site-header:not([data-coalescence-ready])").forEach((header) => {
+      header.dataset.coalescenceReady = "true";
+      initHeader(header);
+    });
+  }
+
+  initHeaders();
+  document.addEventListener("partials:loaded", initHeaders);
 })();
