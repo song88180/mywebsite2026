@@ -17,6 +17,9 @@ node_modules/
 dist/
 build/
 assets/
+photos/
+img/
+document/
 
 # Local environment files
 .env
