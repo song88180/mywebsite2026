@@ -1,6 +1,7 @@
 (function () {
   const GENERATIONS = 100;
-  const DURATION = 3000;
+  const DURATION = 10000;
+  const SEGMENT_DRAW_DURATION = DURATION / GENERATIONS;
   const MAX_ACTIVE = 100;
   const BRANCH_WIDTH = 0.6;
   const LANE_GAP = 4;
@@ -164,7 +165,18 @@
       return `M ${fromX} ${fromY} C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${toX} ${toY}`;
     }
 
-    function addSvgBranch(segment) {
+    function animateBranchDraw(path) {
+      const length = path.getTotalLength();
+      if (!length) return;
+
+      path.style.strokeDasharray = String(length);
+      path.style.strokeDashoffset = String(length);
+      path.getBoundingClientRect();
+      path.style.transition = `stroke-dashoffset ${SEGMENT_DRAW_DURATION}ms ease-out`;
+      path.style.strokeDashoffset = "0";
+    }
+
+    function addSvgBranch(segment, animate) {
       const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
       path.setAttribute("d", branchPath(segment.fromX, segment.fromY, segment.toX, segment.toY));
       path.setAttribute("fill", "none");
@@ -173,13 +185,17 @@
       path.setAttribute("stroke-linecap", "round");
       path.setAttribute("stroke-linejoin", "round");
       svg.appendChild(path);
+
+      if (animate) {
+        animateBranchDraw(path);
+      }
     }
 
     function drawSvg() {
       svg.replaceChildren();
       const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       const drawSegment = (segment) => {
-        addSvgBranch(segment);
+        addSvgBranch(segment, !reduceMotion);
       };
 
       lineage.segments.forEach((segment) => {
