@@ -5,6 +5,95 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Home | Song, Siliang</title>
   <link rel="stylesheet" href="style.css">
+  <style>
+    .phylogeny-topics {
+      display: grid;
+      grid-template-columns: 50px minmax(0, 1fr);
+      align-items: stretch;
+      color: var(--forest-dark);
+    }
+
+    .home-hero {
+      grid-template-columns: minmax(300px, 0.8fr) minmax(0, 1.8fr);
+    }
+
+    .phylogeny-tree {
+      display: block;
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+    }
+
+    .phylogeny-tree line,
+    .phylogeny-tree polyline {
+      fill: none;
+      stroke: currentColor;
+      stroke-linecap: butt;
+      stroke-linejoin: miter;
+      stroke-width: 3;
+      vector-effect: non-scaling-stroke;
+    }
+
+    .phylogeny-topics .hero-topics {
+      gap: 0;
+      justify-items: start;
+      text-align: left;
+      font-size: clamp(1.6rem, 0.1vw, 1.8rem);
+    }
+
+    .phylogeny-topics .hero-topics li {
+      position: relative;
+      display: flex;
+      min-height: 72px;
+      align-items: center;
+      padding-left: 0.58em;
+      line-height: 1.18;
+      white-space: nowrap;
+    }
+
+    .phylogeny-topics .hero-topics li::before {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 0;
+      width: 0.34em;
+      height: 0.34em;
+      border-radius: 50%;
+      background: currentColor;
+      transform: translate(-50%, -50%);
+    }
+
+    @media (max-width: 820px) {
+      .home-hero {
+        grid-template-columns: 1fr;
+      }
+
+      .home-hero .hero-copy {
+        align-items: center;
+      }
+
+      .phylogeny-topics {
+        width: fit-content;
+        max-width: 100%;
+        grid-template-columns: 170px minmax(0, 1fr);
+      }
+    }
+
+    @media (max-width: 560px) {
+      .phylogeny-topics .hero-topics li {
+        white-space: normal;
+      }
+
+      .phylogeny-topics {
+        grid-template-columns: 64px minmax(0, 1fr);
+      }
+
+      .phylogeny-tree line,
+      .phylogeny-tree polyline {
+        stroke-width: 2.25;
+      }
+    }
+  </style>
   <script src="partials.js" defer></script>
   <script src="coalescence.js" defer></script>
 </head>
@@ -12,20 +101,116 @@
   <div data-include="header.html"></div>
 
   <main class="page">
-    <section class="panel hero-grid content">
+    <section class="panel hero-grid content home-hero">
       <div class="hero-copy">
-        <p class="eyebrow">Welcome</p>
-        <h2>Exploring evolution across molecules, phenotypes, and populations.</h2>
-        <p class="lead">Hi, welcome to Song Siliang's personal website. This site gathers research interests, academic projects, collaborators, selected photos, and contact information in one place.</p>
+        <div class="phylogeny-topics" aria-label="Research topics">
+          <svg class="phylogeny-tree" viewBox="0 0 160 360" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+            <line x1="0" y1="247.5" x2="20" y2="247.5"></line>
+            <line x1="20" y1="171" x2="20" y2="324"></line>
+            <line x1="20" y1="324" x2="160" y2="324"></line>
+            <line x1="20" y1="171" x2="50" y2="171"></line>
+            <line x1="50" y1="90" x2="50" y2="252"></line>
+            <line x1="50" y1="252" x2="160" y2="252"></line>
+            <line x1="50" y1="90" x2="80" y2="90"></line>
+            <line x1="80" y1="36" x2="80" y2="144"></line>
+            <line x1="80" y1="36" x2="160" y2="36"></line>
+            <line x1="80" y1="144" x2="110" y2="144"></line>
+            <line x1="110" y1="108" x2="110" y2="180"></line>
+            <line x1="110" y1="108" x2="160" y2="108"></line>
+            <line x1="110" y1="180" x2="160" y2="180"></line>
+          </svg>
+          <ul class="hero-topics">
+            <li>Molecular Evolution</li>
+            <li>Population Genetics</li>
+            <li>Human Genetics</li>
+            <li>Evolution of Sex</li>
+            <li>Artificial Life</li>
+          </ul>
+        </div>
       </div>
-      <div class="photo-stack" aria-label="Featured placeholder photos">
-        <img src="assets/field-study.svg" alt="Placeholder field landscape">
-        <img src="assets/lab-bench.svg" alt="Placeholder research image">
-        <img src="assets/campus.svg" alt="Placeholder campus image">
+      <div class="home-carousel" aria-label="Featured photos from home">
+        <div class="home-carousel-track" data-home-carousel>
+          <img src="img/Home/1.jpg" alt="Featured home photo 1">
+          <img src="img/Home/2.jpg" alt="Featured home photo 2">
+          <img src="img/Home/3.jpg" alt="Featured home photo 3">
+          <img src="img/Home/4.jpg" alt="Featured home photo 4">
+          <img src="img/Home/5.jpg" alt="Featured home photo 5">
+          <img src="img/Home/6.jpg" alt="Featured home photo 6">
+          <img src="img/Home/7.jpg" alt="Featured home photo 7">
+          <img src="img/Home/8.jpg" alt="Featured home photo 8">
+          <img src="img/Home/9.jpg" alt="Featured home photo 9">
+          <img src="img/Home/10.jpg" alt="Featured home photo 10">
+          <img src="img/Home/11.jpg" alt="Featured home photo 11">
+          <img src="img/Home/12.jpg" alt="Featured home photo 12">
+          <img src="img/Home/13.jpg" alt="Featured home photo 13">
+          <img src="img/Home/14.jpg" alt="Featured home photo 14">
+        </div>
       </div>
     </section>
   </main>
 
   <div data-include="footer.html"></div>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const track = document.querySelector("[data-home-carousel]");
+      if (!track) return;
+
+      const carousel = track.closest(".home-carousel");
+      if (!carousel) return;
+
+      const slides = Array.from(track.querySelectorAll("img"));
+      if (slides.length < 2) return;
+
+      const firstClone = slides[0].cloneNode(true);
+      firstClone.setAttribute("aria-hidden", "true");
+      track.append(firstClone);
+
+      const slideCount = slides.length;
+      const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+      let index = 0;
+      let timerId = null;
+
+      const setSlide = (nextIndex, animate = true) => {
+        track.style.transition = animate ? "" : "none";
+        track.style.transform = `translateX(-${nextIndex * 100}%)`;
+      };
+
+      const advance = () => {
+        index += 1;
+        setSlide(index);
+      };
+
+      const stop = () => {
+        if (timerId) {
+          window.clearInterval(timerId);
+          timerId = null;
+        }
+      };
+
+      const start = () => {
+        stop();
+        if (!motionQuery.matches && !document.hidden) {
+          timerId = window.setInterval(advance, 4200);
+        }
+      };
+
+      track.addEventListener("transitionend", () => {
+        if (index === slideCount) {
+          index = 0;
+          setSlide(index, false);
+          track.offsetHeight;
+          track.style.transition = "";
+        }
+      });
+
+      carousel.addEventListener("mouseenter", stop);
+      carousel.addEventListener("mouseleave", start);
+      carousel.addEventListener("focusin", stop);
+      carousel.addEventListener("focusout", start);
+      document.addEventListener("visibilitychange", start);
+      motionQuery.addEventListener("change", start);
+      start();
+    });
+  </script>
 </body>
 </html>
