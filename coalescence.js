@@ -1,9 +1,9 @@
 (function () {
-  const GENERATIONS = 200;
+  const GENERATIONS = 100;
   const DURATION = 3000;
-  const MAX_ACTIVE = 50;
-  const BRANCH_WIDTH = 0.5;
-  const LANE_GAP = 1;
+  const MAX_ACTIVE = 100;
+  const BRANCH_WIDTH = 0.6;
+  const LANE_GAP = 4;
 
   const rand = (min, max) => min + Math.random() * (max - min);
   const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
@@ -80,7 +80,7 @@
     const bottom = Math.max(top + 64, brandBox.height - 6);
     const startX = clamp(headingBox.right - headerBox.left + 22, 24, headerBox.width - 90);
     const startY = bottom;
-    const available = Math.max(180, headerBox.width - startX + 260);
+    const available = Math.max(180, headerBox.width - startX);
     const stepX = available / GENERATIONS;
     const baseHue = rand(185, 315);
     let active = [{ x: startX, y: startY, hue: baseHue }];
@@ -155,23 +155,31 @@
     let restartCount = 0;
     let generationTimers = [];
 
-    function addSvgLine(x1, y1, x2, y2, segment) {
-      const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-      line.setAttribute("x1", String(x1));
-      line.setAttribute("y1", String(y1));
-      line.setAttribute("x2", String(x2));
-      line.setAttribute("y2", String(y2));
-      line.setAttribute("stroke", hsla(segment.hue, 0.52, 0.54, 1));
-      line.setAttribute("stroke-width", String(BRANCH_WIDTH));
-      line.setAttribute("stroke-linecap", "square");
-      svg.appendChild(line);
+    function branchPath(fromX, fromY, toX, toY) {
+      const bend = (toX - fromX) * 0.5;
+      const cp1x = fromX + bend;
+      const cp1y = fromY;
+      const cp2x = toX - bend;
+      const cp2y = toY;
+      return `M ${fromX} ${fromY} C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${toX} ${toY}`;
+    }
+
+    function addSvgBranch(segment) {
+      const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      path.setAttribute("d", branchPath(segment.fromX, segment.fromY, segment.toX, segment.toY));
+      path.setAttribute("fill", "none");
+      path.setAttribute("stroke", hsla(segment.hue, 0.52, 0.54, 1));
+      path.setAttribute("stroke-width", String(BRANCH_WIDTH));
+      path.setAttribute("stroke-linecap", "round");
+      path.setAttribute("stroke-linejoin", "round");
+      svg.appendChild(path);
     }
 
     function drawSvg() {
       svg.replaceChildren();
       const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       const drawSegment = (segment) => {
-        addSvgLine(segment.fromX, segment.fromY, segment.toX, segment.toY, segment);
+        addSvgBranch(segment);
       };
 
       lineage.segments.forEach((segment) => {
@@ -188,7 +196,7 @@
     function sizeGraphic() {
       const box = header.getBoundingClientRect();
       const brandBox = brand.getBoundingClientRect();
-      const canvasWidth = box.width + 260;
+      const canvasWidth = box.width;
       const canvasHeight = brandBox.height;
       lastWidth = box.width;
       lastHeight = box.height;
