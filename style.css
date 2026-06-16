@@ -147,7 +147,7 @@ a:hover {
 h2 {
   margin: 0 0 18px;
   color: var(--forest-dark);
-  font-size: clamp(1.9rem, 4vw, 3rem);
+  font-size: clamp(1.9rem, 4vw, 2rem);
   line-height: 1.12;
 }
 
@@ -295,7 +295,8 @@ p {
 }
 
 .profile-photo {
-  aspect-ratio: 4 / 5;
+  height: auto;
+  object-fit: contain;
   border-radius: 8px;
   box-shadow: 0 14px 30px rgba(34, 79, 126, 0.18);
 }
