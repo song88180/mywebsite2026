@@ -1,11 +1,11 @@
 (function () {
-  const GENERATIONS = 100;
+  const GENERATIONS = 60;
   const DURATION = 10000;
   const SEGMENT_DRAW_DURATION = DURATION / GENERATIONS;
   const MAX_ACTIVE = 100;
-  const BRANCH_WIDTH = 0.6;
-  const TIP_RADIUS = 1;
-  const LANE_GAP = 4;
+  const BRANCH_WIDTH = 1.5;
+  const TIP_RADIUS = 2.5;
+  const LANE_GAP = 10;
   const SESSION_DRAWN_KEY = "coalescence-drawn";
   const SESSION_SEED_KEY = "coalescence-seed";
 
@@ -62,13 +62,13 @@
     }
 
     if (activeCount >= cap * 0.8) {
-      if (roll < 0.25) return 0;
-      if (roll < 0.75) return 1;
+      if (roll < 0.2) return 0;
+      if (roll < 0.65) return 1;
       return 2;
     }
 
-    if (roll < 0.25) return 0;
-    if (roll < 0.7) return 1;
+    if (roll < 0.2) return 0;
+    if (roll < 0.65) return 1;
     return 2;
   }
 
