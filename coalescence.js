@@ -6,9 +6,30 @@
   const BRANCH_WIDTH = 0.6;
   const TIP_RADIUS = 1;
   const LANE_GAP = 4;
+  const SESSION_DRAWN_KEY = "coalescence-drawn";
+  const SESSION_SEED_KEY = "coalescence-seed";
 
-  const rand = (min, max) => min + Math.random() * (max - min);
   const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+
+  function makeSeed() {
+    return String(Math.floor(Math.random() * 2 ** 32));
+  }
+
+  function makeRandom(seed) {
+    let state = Number(seed) >>> 0;
+
+    return function random() {
+      state = (state + 0x6d2b79f5) >>> 0;
+      let value = state;
+      value = Math.imul(value ^ (value >>> 15), value | 1);
+      value ^= value + Math.imul(value ^ (value >>> 7), value | 61);
+      return ((value ^ (value >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  function rand(random, min, max) {
+    return min + random() * (max - min);
+  }
 
   function hsla(hue, saturation, lightness, alpha) {
     const c = (1 - Math.abs(2 * lightness - 1)) * saturation;
@@ -32,8 +53,8 @@
     return Math.floor((bottom - top) / LANE_GAP) + 1;
   }
 
-  function descendants(activeCount, cap) {
-    const roll = Math.random();
+  function descendants(random, activeCount, cap) {
+    const roll = random();
 
     if (activeCount <= 2) {
       if (roll < 0.08) return 1;
@@ -51,16 +72,16 @@
     return 2;
   }
 
-  function mutateHue(hue) {
-    return (hue + rand(-18, 18) + 360) % 360;
+  function mutateHue(random, hue) {
+    return (hue + rand(random, -18, 18) + 360) % 360;
   }
 
-  function fitCountsToCap(counts, cap) {
+  function fitCountsToCap(random, counts, cap) {
     while (counts.reduce((sum, count) => sum + count, 0) > cap) {
       const candidates = counts
         .map((count, index) => ({ count, index }))
         .filter((item) => item.count > 0);
-      const picked = candidates[Math.floor(Math.random() * candidates.length)];
+      const picked = candidates[Math.floor(random() * candidates.length)];
       counts[picked.index] -= 1;
     }
 
@@ -75,7 +96,8 @@
     });
   }
 
-  function makeLineage(canvas, header, brand, heading) {
+  function makeLineage(canvas, header, brand, heading, seed) {
+    const random = makeRandom(seed);
     const headerBox = header.getBoundingClientRect();
     const brandBox = brand.getBoundingClientRect();
     const headingRange = document.createRange();
@@ -89,20 +111,20 @@
     const startY = bottom;
     const available = Math.max(180, headerBox.width - startX);
     const stepX = available / GENERATIONS;
-    const baseHue = rand(185, 315);
+    const baseHue = rand(random, 185, 315);
     let active = [{ x: startX, y: startY, hue: baseHue }];
     const segments = [];
     const tips = [];
 
     for (let generation = 0; generation < GENERATIONS; generation += 1) {
       active.sort((a, b) => b.y - a.y);
-      let counts = active.map(() => descendants(active.length, activeCap));
+      let counts = active.map(() => descendants(random, active.length, activeCap));
 
       if (!counts.some(Boolean)) {
-        counts[Math.floor(Math.random() * counts.length)] = 1;
+        counts[Math.floor(random() * counts.length)] = 1;
       }
 
-      counts = fitCountsToCap(counts, activeCap);
+      counts = fitCountsToCap(random, counts, activeCap);
 
       const nextCount = counts.reduce((sum, count) => sum + count, 0);
       const nextYs = laneYs(nextCount, top, bottom);
@@ -125,7 +147,7 @@
           const child = {
             x: node.x + stepX,
             y: childY,
-            hue: mutateHue(node.hue),
+            hue: mutateHue(random, node.hue),
           };
 
           segments.push({
@@ -162,6 +184,19 @@
     const brand = header.querySelector(".brand");
     const heading = header.querySelector(".brand h1");
     if (!brand || !heading) return;
+    const navigation = performance.getEntriesByType("navigation")[0];
+    const isReload = navigation ? navigation.type === "reload" : performance.navigation?.type === 1;
+    const shouldAnimateInitialDraw = isReload || sessionStorage.getItem(SESSION_DRAWN_KEY) !== "true";
+    let seed = sessionStorage.getItem(SESSION_SEED_KEY);
+
+    if (shouldAnimateInitialDraw || !seed) {
+      seed = makeSeed();
+      sessionStorage.setItem(SESSION_SEED_KEY, seed);
+    }
+
+    if (shouldAnimateInitialDraw) {
+      sessionStorage.setItem(SESSION_DRAWN_KEY, "true");
+    }
 
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     svg.classList.add("coalescence-canvas");
@@ -241,15 +276,15 @@
       }
     }
 
-    function drawSvg() {
+    function drawSvg(animate) {
       svg.replaceChildren();
       const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       const drawSegment = (segment) => {
-        addSvgBranch(segment, !reduceMotion);
+        addSvgBranch(segment, animate && !reduceMotion);
       };
 
       lineage.segments.forEach((segment) => {
-        if (reduceMotion) {
+        if (!animate || reduceMotion) {
           drawSegment(segment);
           return;
         }
@@ -259,7 +294,7 @@
       });
 
       lineage.tips.forEach((tip) => {
-        if (reduceMotion) {
+        if (!animate || reduceMotion) {
           addSvgTip(tip, false);
           return;
         }
@@ -288,7 +323,8 @@
       svg.setAttribute("preserveAspectRatio", "none");
       svg.dataset.width = String(canvasWidth);
       svg.dataset.height = String(canvasHeight);
-      lineage = makeLineage(svg, header, brand, heading);
+      lineage = makeLineage(svg, header, brand, heading, seed);
+      svg.dataset.seed = seed;
       svg.dataset.generations = String(GENERATIONS);
       svg.dataset.segments = String(lineage.segments.length);
       svg.dataset.tips = String(lineage.tips.length);
@@ -302,22 +338,22 @@
       svg.dataset.lastGeneration = String(lineage.lastGeneration);
     }
 
-    function restart() {
+    function restart(animate) {
       generationTimers.forEach((timer) => clearTimeout(timer));
       generationTimers = [];
       sizeGraphic();
       restartCount += 1;
       svg.dataset.restartCount = String(restartCount);
-      drawSvg();
+      drawSvg(animate);
     }
 
-    restart();
+    restart(shouldAnimateInitialDraw);
     window.addEventListener(
       "resize",
       () => {
         const box = header.getBoundingClientRect();
         if (Math.abs(box.width - lastWidth) > 1 || Math.abs(box.height - lastHeight) > 1) {
-          restart();
+          restart(false);
         }
       },
       { passive: true }
