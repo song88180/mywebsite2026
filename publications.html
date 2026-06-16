@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Publications | Song, Siliang</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="coalescence.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="brand">
+      <h1>Song, Siliang</h1>
+      <p>Exploring evolutions in the real world and the digital world</p>
+    </div>
+    <div class="nav-wrap">
+      <nav class="nav" aria-label="Main navigation">
+        <a href="index.html">Home</a>
+        <a href="research.html">Research</a>
+        <a href="team.html">Team</a>
+        <a class="active" href="publications.html">Publications</a>
+        <a href="about.html">About Me</a>
+        <a href="photo.html">Photo</a>
+        <a href="contact.html">Contact Me</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page">
+    <section class="panel content">
+      <div class="publication-header">
+        <div>
+          <h2>Publications</h2>
+          <p>Selected publications and scholarly outputs are listed here. For citation counts and the most recent indexing updates, visit the full Google Scholar profile.</p>
+        </div>
+        <a class="button" href="https://scholar.google.com/citations?user=3FotdV8AAAAJ&amp;hl=en" target="_blank" rel="noopener">Google Scholar</a>
+      </div>
+
+      <div class="publication-list" id="publication-list">
+        <p class="publication-status">Loading publications...</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">Song, Siliang personal website</footer>
+  <script>
+    const publicationList = document.querySelector("#publication-list");
+
+    function renderPublication(publication) {
+      const item = document.createElement("article");
+      item.className = "publication-item";
+
+      const year = document.createElement("div");
+      year.className = "publication-year";
+      year.textContent = publication.year || "";
+
+      const body = document.createElement("div");
+      const title = document.createElement("h3");
+      title.textContent = publication.title;
+
+      const authors = document.createElement("p");
+      authors.className = "publication-authors";
+      publication.authors.forEach((author, index) => {
+        if (index > 0) {
+          authors.append(document.createTextNode(", "));
+        }
+
+        if (author === "Siliang Song") {
+          const highlighted = document.createElement("strong");
+          highlighted.textContent = author;
+          authors.append(highlighted);
+          return;
+        }
+
+        authors.append(document.createTextNode(author));
+      });
+
+      const venue = document.createElement("p");
+      venue.className = "publication-venue";
+      const citationParts = [];
+      if (publication.publication) {
+        citationParts.push(publication.publication);
+      }
+      if (publication.volume) {
+        citationParts.push(publication.number ? `${publication.volume}(${publication.number})` : publication.volume);
+      }
+      if (publication.pages) {
+        citationParts.push(publication.pages);
+      }
+      if (publication.year) {
+        citationParts.push(publication.year);
+      }
+      venue.textContent = citationParts.join(", ");
+
+      const metaRow = document.createElement("div");
+      metaRow.className = "publication-meta-row";
+
+      const links = document.createElement("p");
+      links.className = "publication-links";
+      const doi = document.createElement("a");
+      doi.href = publication.url;
+      doi.target = "_blank";
+      doi.rel = "noopener";
+      doi.textContent = `DOI: ${publication.doi}`;
+      links.append(doi);
+      metaRow.append(venue);
+
+      body.append(title, authors, metaRow);
+      if (publication.doi) {
+        metaRow.append(links);
+      }
+      item.append(year, body);
+      return item;
+    }
+
+    fetch("publications.json")
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Publication data could not be loaded.");
+        }
+        return response.json();
+      })
+      .then((publications) => {
+        publications.sort((a, b) => new Date(b.date) - new Date(a.date));
+        publicationList.replaceChildren(...publications.map(renderPublication));
+      })
+      .catch(() => {
+        const status = document.createElement("p");
+        status.className = "publication-status";
+        status.textContent = "Publication data is unavailable right now.";
+        publicationList.replaceChildren(status);
+      });
+  </script>
+</body>
+</html>
