@@ -6,6 +6,7 @@
   const BRANCH_WIDTH = 1.5;
   const TIP_RADIUS = 2.5;
   const LANE_GAP = 10;
+  const MIN_CANVAS_WIDTH = 1200;
   const SESSION_DRAWN_KEY = "coalescence-drawn";
   const SESSION_SEED_KEY = "coalescence-seed";
 
@@ -96,7 +97,7 @@
     });
   }
 
-  function makeLineage(canvas, header, brand, heading, seed) {
+  function makeLineage(canvas, header, brand, heading, seed, layoutWidth) {
     const random = makeRandom(seed);
     const headerBox = header.getBoundingClientRect();
     const brandBox = brand.getBoundingClientRect();
@@ -107,9 +108,15 @@
     const top = 6;
     const bottom = Math.max(top + 64, brandBox.height - 6);
     const activeCap = Math.min(MAX_ACTIVE, maxLaneCount(top, bottom));
-    const startX = clamp(headingBox.right - headerBox.left + 22, 24, headerBox.width - 90);
+    const brandMaxWidth = parseFloat(window.getComputedStyle(brand).maxWidth);
+    const brandLayoutWidth = Number.isFinite(brandMaxWidth)
+      ? Math.min(layoutWidth, brandMaxWidth)
+      : brandBox.width;
+    const brandLayoutLeft = Math.max(0, (layoutWidth - brandLayoutWidth) / 2);
+    const headingRight = brandLayoutLeft + (headingBox.right - brandBox.left);
+    const startX = clamp(headingRight + 22, 24, layoutWidth - 90);
     const startY = bottom;
-    const available = Math.max(180, headerBox.width - startX);
+    const available = Math.max(180, layoutWidth - startX);
     const stepX = available / GENERATIONS;
     const baseHue = rand(random, 185, 315);
     let active = [{ x: startX, y: startY, hue: baseHue }];
@@ -307,11 +314,11 @@
     function sizeGraphic() {
       const box = header.getBoundingClientRect();
       const brandBox = brand.getBoundingClientRect();
-      const canvasWidth = box.width;
+      const canvasWidth = Math.max(box.width, MIN_CANVAS_WIDTH);
       const canvasHeight = brandBox.height;
-      lastWidth = box.width;
+      lastWidth = canvasWidth;
       lastHeight = box.height;
-      header.style.overflow = "visible";
+      header.style.overflow = "hidden";
       svg.style.inset = "auto";
       svg.style.left = "0";
       svg.style.top = `${brandBox.top - box.top}px`;
@@ -323,7 +330,7 @@
       svg.setAttribute("preserveAspectRatio", "none");
       svg.dataset.width = String(canvasWidth);
       svg.dataset.height = String(canvasHeight);
-      lineage = makeLineage(svg, header, brand, heading, seed);
+      lineage = makeLineage(svg, header, brand, heading, seed, canvasWidth);
       svg.dataset.seed = seed;
       svg.dataset.generations = String(GENERATIONS);
       svg.dataset.segments = String(lineage.segments.length);
@@ -352,7 +359,8 @@
       "resize",
       () => {
         const box = header.getBoundingClientRect();
-        if (Math.abs(box.width - lastWidth) > 1 || Math.abs(box.height - lastHeight) > 1) {
+        const canvasWidth = Math.max(box.width, MIN_CANVAS_WIDTH);
+        if (Math.abs(canvasWidth - lastWidth) > 1 || Math.abs(box.height - lastHeight) > 1) {
           restart(false);
         }
       },
