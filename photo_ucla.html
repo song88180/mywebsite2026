@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UCLA Photos | Song, Siliang</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="partials.js" defer></script>
+  <script src="coalescence.js" defer></script>
+  <script src="photo_album.js" defer></script>
+</head>
+<body data-album="ucla">
+  <div data-include="header.html"></div>
+
+  <main class="page">
+    <section class="panel content">
+      <nav class="photo-breadcrumb" aria-label="Breadcrumb">
+        <a href="photo.html">Photos</a>
+        <span>/</span>
+        <span data-album-label>UCLA</span>
+      </nav>
+      <h2 class="visually-hidden"><span data-album-title>UCLA</span> Photos</h2>
+      <div class="photo-grid" data-photo-grid></div>
+    </section>
+  </main>
+
+  <div class="photo-lightbox" data-lightbox aria-hidden="true">
+    <figure class="lightbox-frame">
+      <img data-lightbox-image alt="">
+      <figcaption data-lightbox-caption></figcaption>
+    </figure>
+    <button class="lightbox-close" type="button" data-lightbox-close aria-label="Close photo">&times;</button>
+  </div>
+
+  <div data-include="footer.html"></div>
+</body>
+</html>

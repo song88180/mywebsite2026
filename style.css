@@ -654,8 +654,161 @@ p {
   overflow: hidden;
 }
 
+.gallery-card-link {
+  color: inherit;
+  text-decoration: none;
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.gallery-card-link:hover {
+  color: inherit;
+  transform: translateY(-2px);
+  box-shadow: 0 14px 30px rgba(34, 79, 126, 0.16);
+}
+
 .gallery-card img {
   min-height: 170px;
+}
+
+.back-link {
+  display: inline-flex;
+  margin-bottom: 16px;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 0.96rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.photo-breadcrumb {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.34em;
+  align-items: baseline;
+  margin: 0 0 34px;
+  color: #173f70;
+  font-size: clamp(1.9rem, 4vw, 2rem);
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.photo-breadcrumb a {
+  color: #173f70;
+  text-decoration: none;
+}
+
+.photo-breadcrumb a:hover {
+  text-decoration: underline;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.photo-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 42px 34px;
+  align-items: flex-start;
+  justify-content: center;
+  margin-top: 0;
+}
+
+.photo-tile {
+  display: inline-block;
+  max-width: 100%;
+  padding: 0;
+  overflow: hidden;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  line-height: 0;
+}
+
+.photo-tile img {
+  display: block;
+  width: auto;
+  height: 220px;
+  object-fit: contain;
+  transition: transform 180ms ease, filter 180ms ease;
+}
+
+.photo-tile:hover img,
+.photo-tile:focus-visible img {
+  filter: saturate(1.04);
+  transform: scale(1.035);
+}
+
+.photo-tile:focus-visible {
+  outline: 3px solid var(--gold);
+  outline-offset: 3px;
+}
+
+.photo-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 44px 24px 58px;
+  background: rgba(0, 0, 0, 0.82);
+}
+
+.photo-lightbox.is-open {
+  display: flex;
+}
+
+.lightbox-frame {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+
+.lightbox-frame img {
+  display: block;
+  max-width: min(1280px, 92vw);
+  max-height: 84vh;
+  width: auto;
+  height: auto;
+  background: #fff;
+  border: 4px solid #fff;
+  border-radius: 3px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.38);
+}
+
+.lightbox-frame figcaption {
+  color: rgba(255, 255, 255, 0.72);
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 0.95rem;
+}
+
+.lightbox-close {
+  position: fixed;
+  right: 28px;
+  bottom: 24px;
+  width: 54px;
+  height: 54px;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  color: rgba(255, 255, 255, 0.78);
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 3rem;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.lightbox-open {
+  overflow: hidden;
 }
 
 .contact-grid {
@@ -756,6 +909,19 @@ p {
 
   .gallery-card {
     grid-template-columns: 1fr;
+  }
+
+  .photo-grid {
+    gap: 22px;
+  }
+
+  .photo-tile {
+    width: 100%;
+  }
+
+  .photo-tile img {
+    width: 100%;
+    height: auto;
   }
 
   .team-card {

@@ -8,7 +8,8 @@
     const page = currentPage();
     root.querySelectorAll(".nav a").forEach((link) => {
       const linkPage = new URL(link.getAttribute("href"), window.location.href).pathname.split("/").pop();
-      link.classList.toggle("active", linkPage === page);
+      const isPhotoPage = linkPage === "photo.html" && page.startsWith("photo_");
+      link.classList.toggle("active", linkPage === page || isPhotoPage);
     });
   }
 
