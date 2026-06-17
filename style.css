@@ -287,7 +287,6 @@ p {
 }
 
 .feature p,
-.future-card p,
 .research-item p,
 .team-card p,
 .gallery-card p {
@@ -342,7 +341,7 @@ p {
 }
 
 .future-card p {
-  margin-bottom: 0;
+  margin-bottom: 8px;
 }
 
 .research-list {
