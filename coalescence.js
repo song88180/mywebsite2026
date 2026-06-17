@@ -63,12 +63,12 @@
     }
 
     if (activeCount >= cap * 0.8) {
-      if (roll < 0.2) return 0;
-      if (roll < 0.65) return 1;
+      if (roll < 0.3) return 0;
+      if (roll < 0.75) return 1;
       return 2;
     }
 
-    if (roll < 0.2) return 0;
+    if (roll < 0.20) return 0;
     if (roll < 0.65) return 1;
     return 2;
   }
