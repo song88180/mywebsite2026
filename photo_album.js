@@ -56,7 +56,7 @@
   });
 
   function photoPath(size, index) {
-    return `img/${album.folder}/${size}/${index}.jpg`;
+    return `https://ssl.qs1401.com/img/${album.folder}/${size}/${index}.jpg`;
   }
 
   function openLightbox(index) {
