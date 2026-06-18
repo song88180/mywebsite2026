@@ -241,12 +241,19 @@ p {
   align-items: center;
   min-height: 42px;
   padding: 9px 16px;
+  border: 2px solid var(--forest);
   border-radius: 6px;
-  background: var(--forest);
-  color: #fff;
+  background: transparent;
+  color: var(--forest);
   font-family: Arial, Helvetica, sans-serif;
   font-weight: 700;
   text-decoration: none;
+  transition: background-color 180ms ease, box-shadow 180ms ease;
+}
+
+.button:hover {
+  background: var(--forest);
+  color: #fff;
   box-shadow: 0 10px 22px rgba(47, 111, 174, 0.24);
 }
 
@@ -363,7 +370,7 @@ p {
   gap: 18px;
 }
 
-.publication-header {
+.publication-header{
   display: flex;
   gap: 20px;
   align-items: flex-start;
@@ -481,6 +488,17 @@ p {
 
 .about-intro {
   padding: 22px;
+}
+
+.about-header {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  margin-bottom: 18px;
+}
+
+.about-header h2 {
+  margin-bottom: 0;
 }
 
 .about-intro p:last-child {
